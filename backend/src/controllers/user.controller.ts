@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { hashPassword } from "../utils/password";
+import { hashPassword, verifyPassword } from "../utils/password";
 
 const prisma = new PrismaClient();
 
@@ -58,3 +58,52 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
         });
     };
 };
+
+export const login = async (req: Request, res: Response) => {
+    try {
+        const { username, password } = req.body;
+
+        const user = await prisma.user.findFirst({
+            where: {
+                username: username
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User does not exists",
+                success: false
+            });
+        }
+
+        const isPasswordCorrect = verifyPassword(password, user.password);
+
+        if (!isPasswordCorrect) {
+            return res.status(400).json({
+                message: "Invalid User password",
+                success: false
+            });
+        }
+
+        const userWithoutPassword = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            fullname: user.fullname
+        };
+
+
+        return res.status(200).json({
+            message: "User logged in",
+            success: true,
+            user: userWithoutPassword
+        });
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
