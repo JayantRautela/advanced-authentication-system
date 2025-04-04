@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword, verifyPassword } from "../utils/password";
 import generateToken from "../utils/authHandler";
+import { sendEmail } from "../utils/sendMail";
 
 const prisma = new PrismaClient();
 
@@ -37,7 +38,7 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
         const hashedPassword = hashPassword(password);
         console.log(`password is ${hashedPassword}`);
 
-        await prisma.user.create({
+        const user = await prisma.user.create({
             data: {
                 email: email,
                 username: username,
@@ -45,6 +46,27 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
                 fullname: fullname
             }
         });
+
+        //sending verification email
+        const verificationLink = `${process.env.EMAIL_VERIFICATION_LINK}?userId=${user.id}`;
+
+        const otp = 123789;
+
+        sendEmail({
+            to: user?.email,
+            subject: 'Welcome to my website',
+            text: `Welcome ${user.fullname} to my website`,
+            html: `<b>Please Verify your email using the otp ${otp} ny clicking this link : <a href="${verificationLink}">Verify Email</a></b>`
+        });
+
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                otp: otp
+            }
+        })
 
         return res.status(201).json({
             message: "User registered successfully",
