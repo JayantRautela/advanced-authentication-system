@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword, verifyPassword } from "../utils/password";
+import generateToken from "../utils/authHandler";
 
 const prisma = new PrismaClient();
 
@@ -85,6 +86,17 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
+        const { accessToken, refreshToken } = generateToken({ id: user.id, email: user.email, username: user.username });
+
+        await prisma.user.update({
+            where: { 
+                id: user.id 
+            },
+            data: { 
+                refreshToken
+            }
+        });
+
         const userWithoutPassword = {
             id: user.id,
             username: user.username,
@@ -92,6 +104,18 @@ export const login = async (req: Request, res: Response) => {
             fullname: user.fullname
         };
 
+        res.cookie('access-token', accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 //15 minutes
+        });
+        res.cookie('refresh-token', refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
+        });
 
         return res.status(200).json({
             message: "User logged in",
