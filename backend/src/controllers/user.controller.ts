@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { hashPassword, verifyPassword } from "../utils/password";
 import generateToken from "../utils/authHandler";
 import { sendEmail } from "../utils/sendMail";
+import generateOtp from "../utils/generateOtp";
 
 const prisma = new PrismaClient();
 
@@ -50,7 +51,7 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
         //sending verification email
         const verificationLink = `${process.env.EMAIL_VERIFICATION_LINK}?userId=${user.id}`;
 
-        const otp = 123789;
+        const otp = generateOtp();
 
         sendEmail({
             to: user?.email,
