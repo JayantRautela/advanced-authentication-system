@@ -1,11 +1,15 @@
+import { Button } from "./components/ui/button"
 
 
 function App() {
   
+  const buttonHandler = () => {
+    alert("Frontend Up and Running");
+  }
 
   return (
     <>
-      Hello! World
+      <Button onClick={buttonHandler}>Click Me</Button>
     </>
   )
 }
