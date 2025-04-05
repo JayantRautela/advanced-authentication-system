@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword, verifyPassword } from "../utils/password";
 import generateToken from "../utils/authHandler";
@@ -116,7 +116,7 @@ export const login = async (req: Request, res: Response) => {
                 id: user.id 
             },
             data: { 
-                refreshToken
+                refreshToken: refreshToken
             }
         });
 
