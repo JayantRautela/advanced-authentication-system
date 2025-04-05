@@ -1,15 +1,33 @@
-import { Button } from "./components/ui/button"
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import Login from './pages/Login.tsx'
+import Signup from './pages/Signup.tsx'
+import Home from './pages/Home.tsx'
+import NotFound from './pages/NotFound.tsx'
 
+const appRouter = createBrowserRouter([
+  {
+    path: '/',
+    element: <Home/>
+  },
+  {
+    path: '/login',
+    element: <Login/>
+  },
+  {
+    path: '/signup',
+    element: <Signup/>
+  },
+  {
+    path: '*',
+    element: <NotFound/>
+  }
+])
 
 function App() {
-  
-  const buttonHandler = () => {
-    alert("Frontend Up and Running");
-  }
 
   return (
     <>
-      <Button onClick={buttonHandler}>Click Me</Button>
+      <RouterProvider router={appRouter}></RouterProvider>
     </>
   )
 }
