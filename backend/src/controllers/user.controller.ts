@@ -127,13 +127,13 @@ export const login = async (req: Request, res: Response) => {
             fullname: user.fullname
         };
 
-        res.cookie('access-token', accessToken, {
+        res.cookie('accessToken', accessToken, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
             maxAge: 15 * 60 * 1000 //15 minutes
         });
-        res.cookie('refresh-token', refreshToken, {
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
@@ -144,6 +144,65 @@ export const login = async (req: Request, res: Response) => {
             message: "User logged in",
             success: true,
             user: userWithoutPassword
+        });
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
+
+export const logout = async (req: Request, res: Response) => {
+    const token = req.cookies?.refreshToken;
+
+    if (!token) {
+        return res.status(200).json({
+            message: "No token present",
+            success: false
+        });
+    }
+
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                refreshToken: token
+            }
+        });
+
+        if (!user) {
+            res.clearCookie('refreshToken', {
+                httpOnly: true,
+                sameSite: 'strict',
+                secure: true
+            });
+
+            return res.status(200).json({
+                message: "No user present",
+                success: false
+            });
+        }
+
+        await prisma.user.update({
+            where: {
+                id: user.id
+            },
+            data: {
+                refreshToken: null
+            }
+        });
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: true
+        });
+        
+        return res.status(200).json({
+            message: "User logged out successfully",
+            success: true
         });
     } catch (error: any) {
         console.log(`Error: ${error}`);
