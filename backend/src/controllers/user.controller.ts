@@ -199,7 +199,7 @@ export const logout = async (req: Request, res: Response) => {
             sameSite: 'strict',
             secure: true
         });
-        
+
         return res.status(200).json({
             message: "User logged out successfully",
             success: true
@@ -213,3 +213,134 @@ export const logout = async (req: Request, res: Response) => {
         });
     }
 }
+
+//login via OTP
+export const sendOtp = async (req: Request, res: Response) => {
+    try {
+        const email = req.body.email;
+
+        const user = await prisma.user.findFirst({
+            where: {
+                email: email
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User does not exists",
+                success: false
+            });
+        }
+
+        const otp = generateOtp();
+
+        sendEmail({
+            to: user?.email,
+            subject: 'OTP for login',
+            text: `Welcome ${user.fullname} to my website`,
+            html: `Your otp login is ${otp}`
+        });
+
+        await prisma.oTP.create({
+            data: {
+                userId: user.id,
+                code: otp,
+                expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+            },
+        });
+
+        return res.status(200).json({
+            message: "OTP sent",
+            success: true
+        });
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
+
+export const verifyOtp = async (req: Request, res: Response) => {
+    const { email, otp } = req.body;
+
+    try {
+        const user = await prisma.user.findFirst({
+            where: {
+                email: email
+            }
+        });
+    
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+                success: false
+            });
+        }
+    
+        const validOtp = await prisma.oTP.findFirst({
+            where: {
+                userId: user.id,
+                code: otp,
+                expiresAt: { gt: new Date() },
+            },
+        });
+    
+        if (!validOtp) {
+            return res.status(400).json({ 
+                message: "Invalid or expired OTP" 
+            });
+        }
+    
+        await prisma.oTP.deleteMany({
+            where: { 
+                userId: user.id
+            },
+        });
+        
+        const { accessToken, refreshToken } = generateToken(user);
+        
+        await prisma.user.update({
+            where: { 
+                id: user.id 
+            },
+            data: { 
+                refreshToken 
+            },
+        });
+        
+        res.cookie("accessToken", accessToken, { 
+            httpOnly: true, 
+            secure: true, 
+            sameSite: "strict" 
+        });
+    
+        res.cookie("refreshToken", refreshToken, { 
+            httpOnly: true,     
+            secure: true, 
+            sameSite: "strict" 
+        });
+    
+        const userWithoutPassword = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            fullname: user.fullname
+        };
+        
+        return res.status(200).json({ 
+            message: "User logged in successfully",
+            success: true,
+            user: userWithoutPassword 
+        });
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+};

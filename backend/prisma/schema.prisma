@@ -18,4 +18,13 @@ model User {
   refreshToken    String?
   otp             Int?
   isEmailVerified Boolean  @default(false)
+  loginOtp        OTP[]
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  code      Int
+  expiresAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
