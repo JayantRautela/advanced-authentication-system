@@ -4,6 +4,9 @@ import { hashPassword, verifyPassword } from "../utils/password";
 import generateToken from "../utils/authHandler";
 import { sendEmail } from "../utils/sendMail";
 import generateOtp from "../utils/generateOtp";
+import { oauth2client } from "../config/google.config";
+import { OAuth2Client } from "google-auth-library";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
@@ -100,7 +103,7 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        const isPasswordCorrect = verifyPassword(password, user.password);
+        const isPasswordCorrect = verifyPassword(password, user.password as string);
 
         if (!isPasswordCorrect) {
             return res.status(400).json({
@@ -109,7 +112,8 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        const { accessToken, refreshToken } = generateToken({ id: user.id, email: user.email, username: user.username });
+
+        const { accessToken, refreshToken } = generateToken({ id: user.id, email: user.email, username: user.username as string });
 
         await prisma.user.update({
             where: { 
@@ -300,7 +304,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
             },
         });
         
-        const { accessToken, refreshToken } = generateToken(user);
+        const { accessToken, refreshToken } = generateToken({ id: user.id, email: user.email, username: user.username as string });
         
         await prisma.user.update({
             where: { 
@@ -344,3 +348,82 @@ export const verifyOtp = async (req: Request, res: Response) => {
         });
     }
 };
+
+export const registerViaGoogle = async (req: Request, res: Response) => {
+    try {
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+        const { token } = req.body;
+
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+
+        if (!payload?.email) {
+            return res.status(400).json({ 
+                message: 'Invalid token',
+                success: false 
+            });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: { 
+                email: payload.email 
+            } 
+        });
+
+        if (user) {
+            return res.status(400).json({
+                message: "User already exists",
+                success: false
+            });
+        }
+
+        const newUser = await prisma.user.create({
+            data: {
+                email: payload.email,
+                fullname: payload.name || "Unknown User",
+                provider: 'google',
+            },
+        });
+
+        const accessToken = jwt.sign({ userId: newUser.id }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15m' });
+        const refreshToken = jwt.sign({ userId: newUser.id }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: '15m' });
+
+        await prisma.user.update({
+            where: { 
+                id: newUser.id 
+            }, data: { 
+                refreshToken: refreshToken 
+            },
+        });
+
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000 //15 minutes
+        });
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
+        });
+
+        return res.status(200).json({
+            message: "User Registered in",
+            success: true,
+        });
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
