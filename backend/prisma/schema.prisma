@@ -10,7 +10,7 @@ datasource db {
 model User {
   id              Int      @id @default(autoincrement())
   email           String   @unique
-  username        String?   @unique
+  username        String?  @unique
   fullname        String
   password        String?
   createdAt       DateTime @default(now())
@@ -19,7 +19,7 @@ model User {
   otp             Int?
   isEmailVerified Boolean  @default(false)
   loginOtp        OTP[]
-  provider        String?
+  profilePicture  String?
 }
 
 model OTP {
