@@ -204,7 +204,8 @@ export const login = async (req: Request, res: Response) => {
             username: user.username,
             email: user.email,
             fullname: user.fullname,
-            profilepicture: user.profilePicture
+            profilepicture: user.profilePicture,
+            isEmailVerified: user.isEmailVerified
         };
 
         res.cookie('accessToken', accessToken, {
@@ -407,7 +408,9 @@ export const verifyOtp = async (req: Request, res: Response) => {
             id: user.id,
             username: user.username,
             email: user.email,
-            fullname: user.fullname
+            fullname: user.fullname,
+            profilepicture: user.profilePicture,
+            isEmailVerified: user.isEmailVerified
         };
         
         return res.status(200).json({ 
