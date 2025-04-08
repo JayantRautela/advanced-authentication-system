@@ -100,6 +100,67 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
     };
 };
 
+export const verifyEmail = async (req: Request, res: Response) => {
+    try {
+        const otp = req.body.otp as number;
+        const userId = req.body.userId;
+
+        if (!otp) {
+            return res.status(400).json({
+                message: "OTP is required",
+                success: false
+            });
+        }
+        if (!userId) {
+            return res.status(400).json({
+                message: "User ID is required",
+                success: false
+            });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: {
+                id: userId
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User is not present",
+                success: false
+            });
+        }
+
+        if (user.otp !== otp) {
+            return res.status(400).json({
+                message: "Invalid OTP",
+                success: false
+            });
+        }
+
+        await prisma.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                isEmailVerified: true
+            }
+        });
+
+        return res.status(200).json({
+            message: "Email verified successfully",
+            succes: true
+        });
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
+
 export const login = async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body;
