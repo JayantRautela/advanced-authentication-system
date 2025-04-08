@@ -4,7 +4,6 @@ import { hashPassword, verifyPassword } from "../utils/password";
 import generateToken from "../utils/authHandler";
 import { sendEmail } from "../utils/sendMail";
 import generateOtp from "../utils/generateOtp";
-import jwt from "jsonwebtoken";
 import getDataUri from "../utils/getDataUri";
 import cloudinary from "../config/cloudinary.config";
 
@@ -143,7 +142,8 @@ export const login = async (req: Request, res: Response) => {
             id: user.id,
             username: user.username,
             email: user.email,
-            fullname: user.fullname
+            fullname: user.fullname,
+            profilepicture: user.profilePicture
         };
 
         res.cookie('accessToken', accessToken, {
