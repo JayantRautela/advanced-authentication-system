@@ -5,12 +5,28 @@ import generateToken from "../utils/authHandler";
 import { sendEmail } from "../utils/sendMail";
 import generateOtp from "../utils/generateOtp";
 import jwt from "jsonwebtoken";
+import getDataUri from "../utils/getDataUri";
+import cloudinary from "../config/cloudinary.config";
 
 const prisma = new PrismaClient();
 
 export const register/*: express.RequestHandler*/ = async (req: Request, res: Response) => {
     try {
         const { email, username, fullname, password} = req.body;
+        const file = req.file;
+        let profilePicture = null;
+
+        if (file) {
+            const fileUri = getDataUri(file);
+            if (!fileUri.content) {
+                return res.status(400).json({
+                    message: "Invalid file content",
+                    success: false
+                });
+            }
+            const cloudRes = await cloudinary.uploader.upload(fileUri.content);
+            profilePicture = cloudRes.secure_url;
+        }
 
         const isUsernameExists = await prisma.user.findFirst({
             where: {
@@ -45,7 +61,8 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
                 email: email,
                 username: username,
                 password: hashedPassword,
-                fullname: fullname
+                fullname: fullname,
+                profilePicture: profilePicture
             }
         });
 
