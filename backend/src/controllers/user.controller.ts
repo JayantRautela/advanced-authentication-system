@@ -424,3 +424,58 @@ export const verifyOtp = async (req: Request, res: Response) => {
         });
     }
 };
+
+export const getUser = async (req: Request, res: Response) => {
+    try {
+        const userId = parseInt(req.params.userId) || Number(req.params.userId);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({
+                message: "Cannot fetch user",
+                success: false
+            })
+        }
+        
+        if (!userId) {
+            return res.status(400).json({
+                message: "User ID is required",
+                success: false
+            })
+        }
+
+        const user = await prisma.user.findFirst({
+            where: {
+                id: userId
+            }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User does not exists",
+                success: false
+            });
+        }
+
+        const userWithoutPassword = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            fullname: user.fullname,
+            profilepicture: user.profilePicture,
+            isEmailVerified: user.isEmailVerified
+        };
+
+        return res.status(200).json({
+            message: "User fetched successfully",
+            success: true,
+            user: userWithoutPassword
+        });
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
