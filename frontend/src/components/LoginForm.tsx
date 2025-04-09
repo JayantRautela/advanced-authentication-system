@@ -32,7 +32,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading } = useSelector((store) => (store as RootState).auth);
+  const { loading } = useSelector((store: RootState) => store.auth);
 
   const [formData, setFormData] = useState<FormDataFields>({
     username: "",
