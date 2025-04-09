@@ -210,16 +210,18 @@ export const login = async (req: Request, res: Response) => {
 
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
+            secure: false,
+            sameSite: 'lax',
             maxAge: 15 * 60 * 1000 //15 minutes
         });
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
+            secure: false,
+            sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 //7 days
         });
+
+        console.log(`${refreshToken} ${accessToken}`)
 
         return res.status(200).json({
             message: "User logged in",
