@@ -149,7 +149,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
         return res.status(200).json({
             message: "Email verified successfully",
-            succes: true
+            success: true
         });
     } catch (error: any) {
         console.log(`Error: ${error}`);
