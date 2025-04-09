@@ -1,17 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import * as z  from "zod"
+import SignUpForm  from "../components/SignUpForm";
 
 const Signup = () => {
-  const [username, setUsername] = useState('');
-  const [usernameMessage, setUsernameMessage] = useState('');
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   return (
-    <div>
-      Signup
-    </div>
+    <main className="h-screen flex items-center justify-center bg-[#f5f2e8]">
+      <SignUpForm />
+      <div className="h-screen w-[50%]"></div>
+    </main>
   )
 }
 

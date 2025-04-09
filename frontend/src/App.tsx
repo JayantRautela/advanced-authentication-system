@@ -3,6 +3,7 @@ import Login from './pages/Login.tsx'
 import Signup from './pages/Signup.tsx'
 import Home from './pages/Home.tsx'
 import NotFound from './pages/NotFound.tsx'
+import { Toaster } from './components/ui/sonner.tsx'
 
 const appRouter = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ function App() {
   return (
     <>
       <RouterProvider router={appRouter}></RouterProvider>
+      <Toaster />
     </>
   )
 }
