@@ -134,6 +134,15 @@ const LoginForm = () => {
           </div>
         </div>
 
+        <div className="text-right mt-1">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-[#1e88e5] hover:underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+
         {loading ? (
           <Button className="w-full bg-[#1e88e5] hover:bg-[#1976d2] py-6 text-base cursor-none">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please Wait
