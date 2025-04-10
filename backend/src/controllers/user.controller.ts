@@ -4,6 +4,7 @@ import { hashPassword, verifyPassword } from "../utils/password";
 import generateToken from "../utils/authHandler";
 import { sendEmail } from "../utils/sendMail";
 import generateOtp from "../utils/generateOtp";
+import crypto from "crypto";
 import getDataUri from "../utils/getDataUri";
 import cloudinary from "../config/cloudinary.config";
 
@@ -476,6 +477,66 @@ export const getUser = async (req: Request, res: Response) => {
             user: userWithoutPassword
         });
     } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ 
+                message: "Email is required",
+                success: false 
+            });
+        }
+
+        const user = await prisma.user.findUnique({ 
+            where: { 
+                email : email
+            } 
+        });
+
+        if (!user) {
+            return res.status(404).json({ 
+                message: "User not found",
+                success: false 
+            });
+        }
+
+        // generating secure token
+        const token = crypto.randomBytes(32).toString("hex");
+        const expiry = new Date(Date.now() + 1000 * 60 * 15); // 15 mins
+
+        await prisma.user.update({
+            where: { email },
+            data: {
+                resetPasswordToken: token,
+                resetTokenExpiry: expiry,
+            },
+        });
+
+        const resetLink = `${process.env.RESET_PASSWORD_LINK}?token=${token}`;
+
+        sendEmail({
+            to: user?.email,
+            subject: 'Reset Password',
+            text: `Hello, ${user.fullname}`,
+            html: `<b>Click this link to reset the password : <a href="${resetLink}">Reset Password</a></b>`
+        });
+
+        res.status(200).json({ 
+            message: "Password reset link sent to your email",
+            success: true 
+        });
+    }     
+    catch (error: any) {
         console.log(`Error: ${error}`);
         return res.status(500).json({
             message: "Internal Server error",
