@@ -7,6 +7,7 @@ import OtpLogin from './pages/OtpLogin.tsx'
 import VerifyEmail from './pages/VerifyEmail.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
 import ForgotPassword from './pages/ForgotPassword.tsx'
+import ResetPassword from './pages/ResetPassword.tsx'
 
 const appRouter = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ const appRouter = createBrowserRouter([
   {
     path: '/forgot-password',
     element: <ForgotPassword/>
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPassword/>
   },
   {
     path: '*',
