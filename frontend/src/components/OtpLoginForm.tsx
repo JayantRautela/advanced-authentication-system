@@ -17,7 +17,7 @@ interface LoginResponse {
     isEmailVerified: boolean;
   };
   message: string;
-  success: true; 
+  success: true;
 }
 
 const OtpLoginForm = () => {
@@ -34,7 +34,7 @@ const OtpLoginForm = () => {
 
     try {
       setLoadingState(true);
-      const res = await axios.post(
+      await axios.post(
         "http://localhost:3000/api/v1/users/sendOtp",
         { email },
         { withCredentials: true }
@@ -57,9 +57,9 @@ const OtpLoginForm = () => {
       setLoadingState(true);
       const res = await axios.post<LoginResponse>(
         "http://localhost:3000/api/v1/users/verifyOtp",
-        { 
+        {
           email,
-          otp: Number(otp) 
+          otp: Number(otp),
         },
         { withCredentials: true }
       );
@@ -67,9 +67,13 @@ const OtpLoginForm = () => {
       dispatch(setUser(res.data.user));
       toast.success("Logged in successfully");
       navigate("/");
-    } catch (error) {
-      console.error(error);
-      toast.error("Invalid OTP or verification failed");
+    } catch (error: any) {
+      console.log(error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message);
+      }
     } finally {
       setLoadingState(false);
       dispatch(setLoading(false));

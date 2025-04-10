@@ -3,7 +3,7 @@ import axios from "axios";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button"; 
 import { Card, CardContent } from "../components/ui/card";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
@@ -16,7 +16,6 @@ type VerifyEmailResponse = {
 const VerifyEmail: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
@@ -24,30 +23,30 @@ const VerifyEmail: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
     setLoading(true);
 
     try {
       const response = await axios.post<VerifyEmailResponse>(`http://localhost:3000/api/v1/users/verify-email/${userId}`, 
         { userId: Number(userId), otp: Number(otp) });
+      console.log(response);
       if (response.data.success) {
-        setMessage({ text: response.data.message, type: "success" });
         setOtp("");
         toast.success("Email Verified Successfully");
         setTimeout(() => navigate('/'), 2000);
       } else {
-        setMessage({ text: response.data.message, type: "error" });
+        toast.error(response.data.message);
       }
-    } catch (error: unknown) {
-      console.error('Upload error:', error);
-      if (error instanceof Error) {
-        alert(error.message);
+    } catch (error: any) {
+      console.log(error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message)
       } else {
-        alert('An unknown error occurred');
+        toast.error(error.message);
       }
     } finally {
       setLoading(false);
     }
+    setOtp("");
   };
 
   return (
@@ -78,17 +77,6 @@ const VerifyEmail: React.FC = () => {
               )}
             </Button>
           </form>
-
-          {message && (
-            <div
-              className={`flex items-center space-x-2 text-sm px-4 py-2 rounded ${
-                message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-              }`}
-            >
-              {message.type === "success" ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-              <span>{message.text}</span>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

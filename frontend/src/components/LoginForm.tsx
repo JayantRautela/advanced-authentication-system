@@ -25,7 +25,7 @@ interface LoginResponse {
     isEmailVerified: boolean;
   };
   message: string;
-  success: true; 
+  success: true;
 }
 
 const LoginForm = () => {
@@ -47,7 +47,7 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log(`${formData.username} ${formData.password}`)
+    console.log(`${formData.username} ${formData.password}`);
     try {
       dispatch(setLoading(true));
       const response = await axios.post<LoginResponse>(
@@ -66,19 +66,17 @@ const LoginForm = () => {
 
       console.log("Upload success:", response.data);
       if (response.status === 200) {
-        console.log("logged in")
+        console.log("logged in");
         dispatch(setUser(response.data.user));
         toast.success("User Logged In successfully");
         setTimeout(() => navigate("/"), 1000);
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-        alert(error.message);
+    } catch (error: any) {
+      console.log(error);
+      if (error.response.data.message) {
+        toast.error(error.response.data.message);
       } else {
-        alert("An unknown error occurred");
-        toast.error("An unknown error occurred");
+        toast.error(error.message);
       }
     } finally {
       dispatch(setLoading(false));
