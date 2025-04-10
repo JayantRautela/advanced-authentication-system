@@ -8,18 +8,20 @@ datasource db {
 }
 
 model User {
-  id              Int      @id @default(autoincrement())
-  email           String   @unique
-  username        String?  @unique
-  fullname        String
-  password        String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  refreshToken    String?
-  otp             Int?
-  isEmailVerified Boolean  @default(false)
-  loginOtp        OTP[]
-  profilePicture  String?
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  username           String?   @unique
+  fullname           String
+  password           String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  refreshToken       String?
+  otp                Int?
+  isEmailVerified    Boolean   @default(false)
+  loginOtp           OTP[]
+  profilePicture     String?
+  resetPasswordToken String? 
+  resetTokenExpiry   DateTime?
 }
 
 model OTP {
