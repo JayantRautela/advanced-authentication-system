@@ -535,7 +535,61 @@ export const forgotPassword = async (req: Request, res: Response) => {
             message: "Password reset link sent to your email",
             success: true 
         });
-    }     
+    } catch (error: any) {
+        console.log(`Error: ${error}`);
+        return res.status(500).json({
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({ 
+                message: "Token and new password are required",
+                success: false 
+            });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: {
+                resetPasswordToken: token,
+                resetTokenExpiry: {
+                    gte: new Date(),
+                },
+            },
+        });
+
+        if (!user) {
+            return res.status(400).json({ 
+                message: "Invalid or expired token",
+                success: false
+            });
+        }
+
+        const hashedPassword = hashPassword(newPassword);
+
+        await prisma.user.update({
+            where: { 
+                id: user.id 
+            },
+            data: {
+                password: hashedPassword,
+                resetPasswordToken: null,
+                resetTokenExpiry: null,
+            },
+        });
+
+        res.status(200).json({ 
+            message: "Password has been reset successfully",
+            success: true
+        });
+    } 
     catch (error: any) {
         console.log(`Error: ${error}`);
         return res.status(500).json({
