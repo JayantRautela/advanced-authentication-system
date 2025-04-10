@@ -7,10 +7,21 @@ import generateOtp from "../utils/generateOtp";
 import crypto from "crypto";
 import getDataUri from "../utils/getDataUri";
 import cloudinary from "../config/cloudinary.config";
+import { loginSchema, registerSchema } from "../schema/schema";
 
 const prisma = new PrismaClient();
 
 export const register/*: express.RequestHandler*/ = async (req: Request, res: Response) => {
+    const result = registerSchema.safeParse(req.body);
+
+    if (!result.success) {
+        res.status(400).json({
+            success: false,
+            message: "input validation error",
+            error: result.error.issues
+        });
+        return;
+    }
     try {
         const { email, username, fullname, password} = req.body;
         const file = req.file;
@@ -163,6 +174,16 @@ export const verifyEmail = async (req: Request, res: Response) => {
 }
 
 export const login = async (req: Request, res: Response) => {
+    const result = loginSchema.safeParse(req.body);
+
+    if (!result.success) {
+        res.status(400).json({
+            success: false,
+            message: "input validation error",
+            error: result.error.issues
+        });
+        return;
+    }
     try {
         const { username, password } = req.body;
 
