@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { EyeOff, Eye, Loader2 } from "lucide-react";
+import { EyeOff, Eye, Loader2, UserRoundXIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -19,10 +19,16 @@ interface FormDataFields {
   file: File | null;
 }
 
+interface BackendResponse {
+  userId: number;
+  message: string;
+  success: true;
+}
+
 const SignUpForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { loading } = useSelector((store) => (store as RootState).auth);
+  const { loading } = useSelector((store: RootState) => store.auth);
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState<FormDataFields>({
@@ -58,7 +64,7 @@ const SignUpForm: React.FC = () => {
 
     try {
       dispatch(setLoading(true));
-      const response = await axios.post(
+      const response = await axios.post<BackendResponse>(
         "http://localhost:3000/api/v1/users/register",
         formDataToSend,
         {
@@ -71,7 +77,8 @@ const SignUpForm: React.FC = () => {
       console.log("Upload success:", response.data);
       if (response.status === 201) {
         toast.success("User registered successfully");
-        setTimeout(() => navigate("/verify-email/6"), 2000);
+        const userId = response.data.userId;
+        setTimeout(() => navigate(`/verify-email?userId=${userId}`), 2000);
       }
     } catch (error: any) {
       console.log(error);

@@ -76,6 +76,7 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
                 profilePicture: profilePicture
             }
         });
+        console.log(`Profile Picture ${profilePicture}`)
 
         //sending verification email
         const verificationLink = `${process.env.EMAIL_VERIFICATION_LINK}?userId=${user.id}`;
@@ -100,7 +101,8 @@ export const register/*: express.RequestHandler*/ = async (req: Request, res: Re
 
         return res.status(201).json({
             message: "User registered successfully",
-            success: true
+            success: true,
+            userId: user.id
         });
     } catch (error: any) {
         console.log(`Error: ${error}`);

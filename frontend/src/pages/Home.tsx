@@ -1,8 +1,9 @@
+import Header from "../components/shared/Header"
 
 const Home = () => {
   return (
     <div>
-      Home
+      <Header/>
     </div>
   )
 }
